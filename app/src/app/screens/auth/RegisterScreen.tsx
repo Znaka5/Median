@@ -55,7 +55,6 @@ export default function RegisterScreen() {
 
         <View style={{ padding: 16, gap: 12 }}>
 
-          {/* EMAIL */}
           <AppText>Email</AppText>
           <Controller
             control={control}
@@ -90,7 +89,6 @@ export default function RegisterScreen() {
             )}
           />
 
-          {/* PASSWORD */}
           <AppText>Password</AppText>
           <Controller
             control={control}
@@ -124,7 +122,6 @@ export default function RegisterScreen() {
             )}
           />
 
-          {/* CONFIRM PASSWORD */}
           <AppText>Confirm password</AppText>
           <Controller
             control={control}
@@ -156,7 +153,6 @@ export default function RegisterScreen() {
             )}
           />
 
-          {/* FIREBASE ERROR */}
           {submitError && (
             <AppText style={{ color: 'red', textAlign: 'center' }}>
               {submitError}

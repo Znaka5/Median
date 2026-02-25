@@ -1,35 +1,40 @@
 import React, { useState } from 'react';
-import { KeyboardAvoidingView, Platform, TextInput, View, TouchableOpacity } from 'react-native';
+import { KeyboardAvoidingView, Platform, TextInput, View } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import Screen from '../../common/Screen';
 import AppText from '../../common/AppText';
 import AppButton from '../../common/AppButton';
 import AnimatedHeader from '../../common/AnimatedHeader';
 import { useTheme } from '../../context/ThemeContext';
-import { useAuth } from '../../context/AuthContext';
+import { getAuth, sendPasswordResetEmail, confirmPasswordReset } from 'firebase/auth';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { AuthStackParamList } from '../../navigation/AuthStack';
 
-type Props = NativeStackScreenProps<AuthStackParamList, 'Login'>;
-type Form = { email: string; password: string };
+type Props = NativeStackScreenProps<AuthStackParamList, 'ForgotPassword'>;
+type Form = { email: string; };
 
-export default function LoginScreen({ navigation }: Props) {
+export default function ForgotPasswordScreen({ navigation }: Props) {
   const { theme } = useTheme();
-  const { login } = useAuth();
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+  const auth = getAuth();
 
   const {
     control,
     handleSubmit,
     formState: { errors },
   } = useForm<Form>({
-    defaultValues: { email: '', password: '' },
+    defaultValues: { email: '' },
   });
 
   const onSubmit = async (data: Form) => {
     try {
       setSubmitError(null);
-      await login(data.email, data.password);
+      setSuccess(null);
+
+      await sendPasswordResetEmail(auth, data.email);
+
+      setSuccess('Password reset email sent. Check your inbox.');
     } catch (e: any) {
       setSubmitError(e.message);
     }
@@ -48,11 +53,13 @@ export default function LoginScreen({ navigation }: Props) {
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={{ flex: 1 }}
       >
-        <AnimatedHeader title="Welcome back" subtitle="Login to continue" />
+        <AnimatedHeader
+          title="Reset Password"
+          subtitle="Enter your email to reset"
+        />
 
         <View style={{ padding: 16, gap: 12 }}>
 
-          {/* Email */}
           <AppText>Email</AppText>
           <Controller
             control={control}
@@ -87,63 +94,25 @@ export default function LoginScreen({ navigation }: Props) {
             )}
           />
 
-          {/* Password */}
-          <AppText>Password</AppText>
-          <Controller
-            control={control}
-            name="password"
-            rules={{
-              required: 'Password required',
-              minLength: {
-                value: 6,
-                message: 'Minimum 6 characters',
-              },
-            }}
-            render={({ field: { onChange, value } }) => (
-              <>
-                <TextInput
-                  value={value}
-                  onChangeText={onChange}
-                  secureTextEntry
-                  placeholder="min 6 chars"
-                  placeholderTextColor={theme.colors.mutedText}
-                  style={[
-                    inputStyle,
-                    { borderColor: errors.password ? 'red' : theme.colors.border },
-                  ]}
-                />
-                {errors.password && (
-                  <AppText style={{ color: 'red' }}>
-                    {String(errors.password.message)}
-                  </AppText>
-                )}
-              </>
-            )}
-          />
-
-          <TouchableOpacity
-            onPress={() => navigation.navigate('ForgotPassword')}
-            style={{ alignSelf: 'flex-end' }}
-          >
-            <AppText style={{ color: theme.colors.primary }}>
-              Forgotten password?
-            </AppText>
-          </TouchableOpacity>
-
           {submitError && (
             <AppText style={{ color: 'red', textAlign: 'center' }}>
               {submitError}
             </AppText>
           )}
 
-          <AppButton label="Login" onPress={handleSubmit(onSubmit)} />
+          {success && (
+            <AppText style={{ color: theme.colors.primary, textAlign: 'center' }}>
+              {success}
+            </AppText>
+          )}
+
+          <AppButton label="Send Reset Email" onPress={handleSubmit(onSubmit)} />
 
           <AppButton
-            label="Create account"
+            label="Back to Login"
             variant="ghost"
-            onPress={() => navigation.navigate('Register')}
+            onPress={() => navigation.goBack()}
           />
-
         </View>
       </KeyboardAvoidingView>
     </Screen>

@@ -1,5 +1,5 @@
 import React from 'react';
-import { FlatList, Pressable } from 'react-native';
+import { ScrollView, View, Pressable, RefreshControl } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import type { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import AppText from '../../common/AppText';
@@ -21,49 +21,74 @@ export default function PostsGrid({
   const navigation =
     useNavigation<NativeStackNavigationProp<FeedStackParamList>>();
 
+  // разделяме постовете на редове по 3
+  const rows = [];
+  for (let i = 0; i < posts.length; i += 3) {
+    rows.push(posts.slice(i, i + 3));
+  }
+
   return (
-    <FlatList
-      style={{ flex: 1 }} // ⭐ fills the space given by parent
-      data={posts}
-      numColumns={3}
-      keyExtractor={(p) => p.id}
+    <ScrollView
+      style={{ flex: 1 }}
       showsVerticalScrollIndicator={false}
-      columnWrapperStyle={{ gap: 10 }}
       contentContainerStyle={{
-        gap: 10,
         paddingTop: 12,
         paddingBottom: 20,
+        gap: 10,
       }}
-      refreshing={refreshing}
-      onRefresh={onRefresh}
-      renderItem={({ item }) => (
-        <Pressable
-          onPress={() =>
-            navigation.navigate('PostDetails', { postId: item.id })
-          }
+      refreshControl={
+        onRefresh ? (
+          <RefreshControl refreshing={!!refreshing} onRefresh={onRefresh} />
+        ) : undefined
+      }
+    >
+      {rows.map((row, rowIndex) => (
+        <View
+          key={rowIndex}
           style={{
-            flex: 1,
-            aspectRatio: 1,
-            borderRadius: 14,
-            backgroundColor: theme.colors.card,
-            borderWidth: 1,
-            borderColor: theme.colors.border,
-            padding: 10,
-            justifyContent: 'space-between',
+            flexDirection: 'row',
+            gap: 10,
+            paddingHorizontal: 10,
           }}
         >
-          <AppText numberOfLines={2} style={{ fontWeight: '800', fontSize: 12 }}>
-            {item.title}
-          </AppText>
+          {row.map((item) => (
+            <Pressable
+              key={item.id}
+              onPress={() =>
+                navigation.navigate('PostDetails', { postId: item.id })
+              }
+              style={{
+                flex: 1,
+                aspectRatio: 1,
+                borderRadius: 14,
+                backgroundColor: theme.colors.card,
+                borderWidth: 1,
+                borderColor: theme.colors.border,
+                padding: 10,
+                justifyContent: 'space-between',
+              }}
+            >
+              <AppText
+                numberOfLines={2}
+                style={{ fontWeight: '800', fontSize: 12 }}
+              >
+                {item.title}
+              </AppText>
 
-          <AppText
-            style={{ color: theme.colors.mutedText, fontSize: 11 }}
-            numberOfLines={1}
-          >
-            {new Date(item.createdAtISO).toLocaleDateString()}
-          </AppText>
-        </Pressable>
-      )}
-    />
+              <AppText
+                style={{ color: theme.colors.mutedText, fontSize: 11 }}
+                numberOfLines={1}
+              >
+                {new Date(item.createdAtISO).toLocaleDateString()}
+              </AppText>
+            </Pressable>
+          ))}
+          {row.length < 3 &&
+            Array.from({ length: 3 - row.length }).map((_, i) => (
+              <View key={`empty-${i}`} style={{ flex: 1 }} />
+            ))}
+        </View>
+      ))}
+    </ScrollView>
   );
 }

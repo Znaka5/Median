@@ -5,11 +5,11 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   signOut,
+  onAuthStateChanged,
 } from 'firebase/auth';
 import { auth } from '../../services/firebase';
 import type { User } from '../types/models';
@@ -23,7 +23,6 @@ type AuthState = {
   logout: () => Promise<void>;
 };
 
-const SESSION_STORAGE_KEY = 'examapp.session';
 const AuthContext = createContext<AuthState | null>(null);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -31,41 +30,33 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [authToken, setAuthToken] = useState<string | null>(null);
   const [isBootstrapping, setIsBootstrapping] = useState(true);
 
-  // Restore session on app start
   useEffect(() => {
-    (async () => {
-      try {
-        const storedSession = await AsyncStorage.getItem(SESSION_STORAGE_KEY);
+    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+      if (firebaseUser) {
+        const token = await firebaseUser.getIdToken();
 
-        if (storedSession) {
-          const parsedSession = JSON.parse(storedSession) as {
-            user: User;
-            token: string;
-          };
+        const appUser: User = {
+          id: firebaseUser.uid,
+          email: firebaseUser.email ?? '',
+          displayName:
+            firebaseUser.displayName ??
+            firebaseUser.email?.split('@')[0] ??
+            'User',
+          favoriteMusic: 'Lo-fi / Synthwave',
+        };
 
-          setCurrentUser(parsedSession.user);
-          setAuthToken(parsedSession.token);
-        }
-      } finally {
-        setIsBootstrapping(false);
+        setCurrentUser(appUser);
+        setAuthToken(token);
+      } else {
+        setCurrentUser(null);
+        setAuthToken(null);
       }
-    })();
+
+      setIsBootstrapping(false);
+    });
+
+    return unsubscribe;
   }, []);
-
-  // Persist session helper
-  const persistSession = async (
-    session: { user: User; token: string } | null
-  ) => {
-    if (!session) {
-      await AsyncStorage.removeItem(SESSION_STORAGE_KEY);
-      return;
-    }
-
-    await AsyncStorage.setItem(
-      SESSION_STORAGE_KEY,
-      JSON.stringify(session)
-    );
-  };
 
   // LOGIN
   const login = async (email: string, password: string) => {
@@ -81,20 +72,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const appUser: User = {
         id: firebaseUser.uid,
         email,
-        displayName: email.split('@')[0] ?? 'User',
-        favoriteMusic: 'Lo-fi / Synthwave',
       };
 
       const token = await firebaseUser.getIdToken();
 
       setCurrentUser(appUser);
       setAuthToken(token);
-
-      await persistSession({
-        user: appUser,
-        token,
-      });
-
     } catch (error: any) {
       if (error.code === 'auth/user-not-found') {
         throw new Error('No account found with this email');
@@ -135,12 +118,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       setCurrentUser(appUser);
       setAuthToken(token);
-
-      await persistSession({
-        user: appUser,
-        token,
-      });
-
     } catch (error: any) {
       if (error.code === 'auth/email-already-in-use') {
         throw new Error('Email already registered');
@@ -153,14 +130,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // LOGOUT
   const logout = async () => {
     await signOut(auth);
-
-    setCurrentUser(null);
-    setAuthToken(null);
-
-    await persistSession(null);
   };
 
   const contextValue = useMemo(
@@ -182,7 +153,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   );
 }
 
-// Hook
 export function useAuth() {
   const authContext = useContext(AuthContext);
 

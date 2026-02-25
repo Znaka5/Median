@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View } from 'react-native';
+import { View, KeyboardAvoidingView, ScrollView, Platform } from 'react-native';
 import Screen from '../../common/Screen';
 import AppButton from '../../common/AppButton';
 import ProfileHeader from './ProfileHeader';
@@ -22,41 +22,47 @@ export default function ProfileScreen({ navigation }: Props) {
 
   return (
     <Screen>
-      {/* TOP */}
-      <View style={{ padding: 16, gap: 12 }}>
-        <ProfileHeader user={user} />
-        <ProfileTabs active={tab} onChange={setTab} />
-      </View>
-
-      {/* ⭐ MIDDLE (scrollable area only) */}
-      <View style={{ flex: 1 }}>
-        {tab === 'posts' ? (
-          <PostsGrid posts={posts.slice(0, 12)} />
-        ) : (
-          <View style={{ padding: 16, gap: 10 }}>
-            <AppText style={{ fontWeight: '900' }}>About</AppText>
-            <AppText>
-              Here you can add more “Steam-like” profile info later.
-            </AppText>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={{ flex: 1 }}
+      >
+        <ScrollView
+          contentContainerStyle={{ flexGrow: 1, paddingBottom: 100 }}
+          keyboardShouldPersistTaps="handled"
+        >
+          
+          <View style={{ padding: 16, gap: 12 }}>
+            <ProfileHeader user={user} />
+            <ProfileTabs active={tab} onChange={setTab} />
           </View>
-        )}
-      </View>
 
-      {/* ⭐ BOTTOM (fixed) */}
-      <View style={{ padding: 16, flexDirection: 'row', gap: 10 }}>
-        <AppButton
-          label="Settings"
-          variant="ghost"
-          onPress={() => navigation.navigate('ProfileSettings')}
-          style={{ flex: 1 }}
-        />
-        <AppButton
-          label="Logout"
-          variant="danger"
-          onPress={() => logout()}
-          style={{ flex: 1 }}
-        />
-      </View>
+          {tab === 'posts' ? (
+            <PostsGrid posts={posts.slice(0, 12)} />
+          ) : (
+            <View style={{ padding: 16, gap: 12 }}>
+              <AppText style={{ fontWeight: '900' }}>About</AppText>
+              <AppText>
+                Controll options here.
+              </AppText>
+
+              <View style={{ flexDirection: 'row', gap: 10, marginTop: 16 }}>
+                <AppButton
+                  label="Settings"
+                  variant="ghost"
+                  onPress={() => navigation.navigate('ProfileSettings')}
+                  style={{ flex: 1 }}
+                />
+                <AppButton
+                  label="Logout"
+                  variant="danger"
+                  onPress={() => logout()}
+                  style={{ flex: 1 }}
+                />
+              </View>
+            </View>
+          )}
+        </ScrollView>
+      </KeyboardAvoidingView>
     </Screen>
   );
 }

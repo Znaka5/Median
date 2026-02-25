@@ -9,6 +9,8 @@ export type ProfileStackParamList = {
   ProfileHome: { userId?: string } | undefined;
   ProfileSettings: undefined;
   PostDetails: { postId: string };
+  ChangeUsername: undefined;
+  ChangeEmail: undefined;
 };
 
 const Stack = createNativeStackNavigator<ProfileStackParamList>();

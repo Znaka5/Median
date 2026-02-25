@@ -9,9 +9,10 @@ export type ThemeName =
 export type User = {
   id: string;
   email: string;
-  displayName: string;
-  favoriteMusic: string;
+  displayName?: string;
+  favoriteMusic?: string;
   avatarUrl?: string;
+  bannerUrl?: string;
 };
 
 export type Post = {
