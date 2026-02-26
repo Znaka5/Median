@@ -12,7 +12,7 @@ type Props = NativeStackScreenProps<FeedStackParamList, 'PostDetails'>;
 
 export default function PostDetailsScreen({ route, navigation }: Props) {
   const { theme } = useTheme();
-  const { posts, deletePost, toggleLike } = usePosts();
+  const { posts, deletePost } = usePosts();
   const post = posts.find(p => p.id === route.params.postId);
 
   if (!post) {
@@ -35,12 +35,6 @@ export default function PostDetailsScreen({ route, navigation }: Props) {
         </AppText>
 
         <View style={{ flexDirection: 'row', gap: 10, marginTop: 10 }}>
-          <AppButton
-            label={post.likedByMe ? 'Unlike' : 'Like'}
-            variant="ghost"
-            onPress={() => toggleLike(post.id)}
-            style={{ flex: 1 }}
-          />
           <AppButton
             label="Edit"
             onPress={() => navigation.navigate('EditPost', { postId: post.id })}

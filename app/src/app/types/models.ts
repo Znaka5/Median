@@ -18,9 +18,10 @@ export type User = {
 export type Post = {
   id: string;
   authorId: string;
-  authorName: string;
+  authorName?: string;
   title: string;
   body: string;
   createdAtISO: string;
   likedByMe: boolean;
+  comments?: Object[];
 };
