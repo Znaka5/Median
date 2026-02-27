@@ -21,7 +21,6 @@ export default function PostsGrid({
   const navigation =
     useNavigation<NativeStackNavigationProp<FeedStackParamList>>();
 
-  // разделяме постовете на редове по 3
   const rows = [];
   for (let i = 0; i < posts.length; i += 3) {
     rows.push(posts.slice(i, i + 3));

@@ -15,6 +15,14 @@ export type User = {
   bannerUrl?: string;
 };
 
+export type Comment = {
+  id: string;
+  text: string;
+  authorId: string;
+  authorName: string;
+  createdAt: string;
+};
+
 export type Post = {
   id: string;
   authorId: string;
@@ -23,5 +31,5 @@ export type Post = {
   body: string;
   createdAtISO: string;
   likedByMe: boolean;
-  comments?: Object[];
+  comments?: Comment[];
 };

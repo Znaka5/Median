@@ -3,7 +3,7 @@ import { Pressable, View } from 'react-native';
 import AppText from '../../common/AppText';
 import { useTheme } from '../../context/ThemeContext';
 
-export type ProfileTabKey = 'posts' | 'about';
+export type ProfileTabKey = 'posts' | 'settings';
 
 export default function ProfileTabs({
   active,
@@ -39,7 +39,7 @@ export default function ProfileTabs({
   return (
     <View style={{ flexDirection: 'row', gap: 10 }}>
       <Tab k="posts" label="Posts" />
-      <Tab k="about" label="About" />
+      <Tab k="settings" label="Settings" />
     </View>
   );
 }

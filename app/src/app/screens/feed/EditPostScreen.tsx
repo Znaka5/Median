@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { TextInput, View } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import Screen from '../../common/Screen';
@@ -9,22 +9,75 @@ import { useTheme } from '../../context/ThemeContext';
 import type { NativeStackScreenProps } from '@react-navigation/native-stack';
 import type { FeedStackParamList } from '../../navigation/FeedStack';
 
-type Props = NativeStackScreenProps<FeedStackParamList, 'EditPost'>;
-type Form = { title: string; body: string };
+type Props = NativeStackScreenProps<
+  FeedStackParamList,
+  'EditPost'
+>;
 
-export default function EditPostScreen({ route, navigation }: Props) {
+type Form = {
+  title: string;
+  body: string;
+};
+
+export default function EditPostScreen({
+  route,
+  navigation,
+}: Props) {
   const { theme } = useTheme();
   const { posts, updatePost } = usePosts();
-  const post = posts.find(p => p.id === route.params.postId);
 
-  const { control, handleSubmit } = useForm<Form>({
-    defaultValues: { title: post?.title ?? '', body: post?.body ?? '' },
+  const post = posts.find(
+    p => p.id === route.params.postId
+  );
+
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<Form>({
+    defaultValues: {
+      title: post?.title ?? '',
+      body: post?.body ?? '',
+    },
   });
+
+  const [submitError, setSubmitError] =
+    useState<string | null>(null);
+  const [saving, setSaving] = useState(false);
+
+  if (!post) {
+    return (
+      <Screen>
+        <View style={{ padding: 16 }}>
+          <AppText>Post not found.</AppText>
+        </View>
+      </Screen>
+    );
+  }
+
+  const onSubmit = async (data: Form) => {
+    try {
+      setSubmitError(null);
+      setSaving(true);
+
+      await updatePost(post.id, data);
+
+      navigation.goBack();
+    } catch (e: any) {
+      setSubmitError(
+        e?.message || 'Failed to update post'
+      );
+    } finally {
+      setSaving(false);
+    }
+  };
 
   return (
     <Screen>
       <View style={{ padding: 16, gap: 12 }}>
-        <AppText style={{ fontWeight: '900' }}>Edit</AppText>
+        <AppText style={{ fontWeight: '900' }}>
+          Edit
+        </AppText>
 
         <AppText>Title</AppText>
         <Controller
@@ -37,10 +90,21 @@ export default function EditPostScreen({ route, navigation }: Props) {
               onChangeText={onChange}
               placeholder="Title"
               placeholderTextColor={theme.colors.mutedText}
-              style={{ borderWidth: 1, borderColor: theme.colors.border, borderRadius: 12, padding: 12, color: theme.colors.text }}
+              style={{
+                borderWidth: 1,
+                borderColor: theme.colors.border,
+                borderRadius: 12,
+                padding: 12,
+                color: theme.colors.text,
+              }}
             />
           )}
         />
+        {errors.title && (
+          <AppText style={{ color: 'red' }}>
+            Title must be at least 3 characters
+          </AppText>
+        )}
 
         <AppText>Body</AppText>
         <Controller
@@ -52,20 +116,35 @@ export default function EditPostScreen({ route, navigation }: Props) {
               value={value}
               onChangeText={onChange}
               placeholder="Body..."
-              placeholderTextColor={theme.colors.mutedText}
               multiline
-              style={{ borderWidth: 1, borderColor: theme.colors.border, borderRadius: 12, padding: 12, minHeight: 120, color: theme.colors.text }}
+              placeholderTextColor={theme.colors.mutedText}
+              style={{
+                borderWidth: 1,
+                borderColor: theme.colors.border,
+                borderRadius: 12,
+                padding: 12,
+                minHeight: 120,
+                color: theme.colors.text,
+              }}
             />
           )}
         />
+        {errors.body && (
+          <AppText style={{ color: 'red' }}>
+            Body must be at least 10 characters
+          </AppText>
+        )}
 
         <AppButton
-          label="Save"
-          onPress={handleSubmit(async d => {
-            await updatePost(route.params.postId, d);
-            navigation.goBack();
-          })}
+          label={saving ? 'Saving...' : 'Save'}
+          onPress={handleSubmit(onSubmit)}
         />
+
+        {submitError && (
+          <AppText style={{ color: 'red' }}>
+            {submitError}
+          </AppText>
+        )}
       </View>
     </Screen>
   );
