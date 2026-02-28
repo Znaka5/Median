@@ -1,4 +1,4 @@
-#Project Name 'Median' (heading)
+### Project Name 'Median' (heading)
 
 Topic: A hybrid between a social blog and a forum like Reddit,
 with inspirations from other sources like Steam profile UI and Instagram's
