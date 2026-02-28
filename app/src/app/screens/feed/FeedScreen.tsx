@@ -38,7 +38,6 @@ export default function FeedScreen({ navigation }: Props) {
     if (user) refresh();
   }, [user]);
 
-  // 🔥 LIKE HANDLER (required by PostList)
   const handleLike = async (id: string) => {
     const uid = user?.id;
     if (!uid) return;
@@ -116,7 +115,7 @@ export default function FeedScreen({ navigation }: Props) {
         onOpen={(id) =>
           navigation.navigate('PostDetails', { postId: id })
         }
-        onLike={handleLike}   // ⭐ REQUIRED
+        onLike={handleLike}
         refreshing={isLoading}
         onRefresh={refresh}
       />
