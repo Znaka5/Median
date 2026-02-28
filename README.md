@@ -13,7 +13,7 @@ then run 'npx react-native run-android'
 (Make sure you have USB debbuging enabled on your phone)
 
 Alternatively use this .apk artifact from the link below
-https://github.com/Znaka5/Median/releases/tag/Median-first-release
+https://github.com/Znaka5/Median/releases/tag/Median-fix-release
 
 User Access & Permissions
 
